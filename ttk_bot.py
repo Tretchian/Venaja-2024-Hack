@@ -3,10 +3,14 @@ from telebot import types
 
 bot = telebot.TeleBot('7659124438:AAGJEiu7fVOET0Vy_hypEfdq0YZTJ25xwJI') # Токен бота
 
+def data_sender():
+     @bot.message_handler(content_types=['text'])    # Обработка ввода
+     def send_data(message):
+        print(message.text, "1")
 
 @bot.message_handler(commands=['start'])    # Обработка начала диалога
 
-def welcome_message(message):   # вывод приветственного сообщения
+def welcome_message(message):   # Вывод приветственного сообщения
 
     keyboard = types.InlineKeyboardMarkup(row_width=1); # Инициализация клавиатуры
     
@@ -23,7 +27,7 @@ def welcome_message(message):   # вывод приветственного со
 @bot.callback_query_handler(func=lambda call: True) # Обработка нажатия на кнопку
 
 def callback_worker(call): # обрабатывем кнопки
-    if call.data == "enter": 
+    if call.data == "enter": # Если пользователь зарегистрирован заходим сюда
 
         user_input_text = 'Пожалуйста введите свой номер договора, чтобы я понял кто вы' # Текст для вывода
 
@@ -32,8 +36,11 @@ def callback_worker(call): # обрабатывем кнопки
         keyboard.add(key_back) # Добавялем кнопку 
 
         bot.send_message(call.from_user.id, text=user_input_text, reply_markup=keyboard) # Отправка сообщения пользователю
+                
+        data_sender()
+       
 
-    elif call.data == "conclude":
+    elif call.data == "conclude": # Если хочет заключить договор 
         user_input_text = 'Укажите свой контактный номер и адрес для подключения услуги' # Текст для вывода
 
         keyboard = types.InlineKeyboardMarkup(row_width=1); # Инициализация клавиатуры
@@ -42,9 +49,13 @@ def callback_worker(call): # обрабатывем кнопки
 
         bot.send_message(call.from_user.id, text=user_input_text, reply_markup=keyboard) # Отправка сообщения пользователю
 
-    if call.data == "back":
+        @bot.message_handler(content_types=['text'])    # Обработка ввода
+
+        def send_data(message):
+            print(message.text, "2")
+    
+    if call.data == "back": # Возврат обратно
         welcome_message(call) 
 
-
-
 bot.polling(none_stop=True)
+
