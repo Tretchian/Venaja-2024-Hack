@@ -4,8 +4,8 @@ from email.mime.multipart import MIMEMultipart
 
 sender_email = "test@example.com"
 receiver_email = "receiver@example.com"
-subject = "Тестовое письмо"
-body = "Это тестовое сообщение, отправленное с локального сервера."
+subject = "This message was sent as test"
+body = "Test body of the message will be here"
 
 message = MIMEMultipart()
 message["From"] = sender_email
