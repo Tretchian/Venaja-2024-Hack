@@ -115,10 +115,10 @@ def conclude_contract(message): # Заключение нового контра
 @bot.callback_query_handler(func=lambda call: True) # Обработка нажатия на кнопку
 def callback_worker(call): # обрабатывем кнопки
     if call.data == "enter_as_client": # Если пользователь зарегистрирован заходим сюда
-        bot.register_next_step_handler(call, enter_as_client)
+        bot.register_next_step_handler(call.message, enter_as_client)
 
     elif call.data == "conclude_contract": # Если хочет заключить договор 
-        bot.register_next_step_handler(call, enter_as_client)
+        bot.register_next_step_handler(call.message, enter_as_client)
         
     elif call.data == "back_to_start": # Возврат обратно
         welcome_message_output(call) 
