@@ -8,6 +8,7 @@ class mailSender():
     # Настройки отправителя и получателя
     sender_email = "safonovila7@gmail.com"
     receiver_email = "safonovila7@gmail.com"
+    receiver_list = []
     app_password = ""
 
     def __init__(self, sender_address: str, reciever_address: str):
@@ -48,6 +49,12 @@ class mailSender():
         self.message["Subject"] = contents[0]
         self.message.attach(MIMEText(contents[1], "plain"))
         return self.message
+    
+    def add_reciever(self,new_receiver_addres:str):
+        if not new_receiver_addres: return
+        if self.receiver_list.__contains__(new_receiver_addres): return
+        
+
 
 '''Пример использования класса
 ms = mailSender("safonovila7@gmail.com","safonovila7@gmail.com")
