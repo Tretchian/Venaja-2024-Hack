@@ -106,5 +106,4 @@ ms = mailSender("safonovila7@gmail.com")
 # Точно не пароль
 ms.set_account_password("qhop xdvu pfsn nmcp")
 ms.create_message(funct.CreateLettter(516, mess, final_wants))
-
-ms.send_email_tolist(["safonovila7@gmail.com","fe-ct@mail.ru","maxbek294@gmail.com"])
+ms.send_email_tolist(["safonovila7@gmail.com", "fe-ct@mail.ru", "maxbek294@gmail.com"])

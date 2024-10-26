@@ -4,8 +4,10 @@ from nltk.corpus import stopwords
 import string
 import sqlite3
 
+
 def MessagePreprocessing(message):
-    """Принимает сообщение от пользователя напрямую, или преобразование из войса"""
+    """Принимает сообщение от пользователя напрямую,
+        или преобразование из войса"""
     """И очищает и преобразовывает, до нормальной формы"""
     morph = pymorphy2.MorphAnalyzer()
     # Делит предложение на слова и символы
@@ -17,7 +19,8 @@ def MessagePreprocessing(message):
     clearTokens_list = []
     # Лемматимация токена
     for token in tokens:
-        if morph.parse(token)[0].normal_form not in (stopwords_ru + list(string.punctuation)):
+        nf = morph.parse(token)[0].normal_form
+        if nf not in (stopwords_ru + list(string.punctuation)):
             clearTokens_list.append(morph.parse(token)[0].normal_form)
         
     return clearTokens_list
