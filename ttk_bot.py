@@ -62,8 +62,7 @@ def enter_as_client(message):
         if len(message.text) == 9 and message.text[:6] == '516':
             print(message.text)
         else:
-            bot.send_message(message.from_user.id, text=user_wrong, reply_markup=back_to_start())
-            
+            bot.send_message(message.from_user.id, text=user_wrong, reply_markup=back_to_start())     
 
 def conclude_contract(message): 
     user_wrong = 'неправильный номер телефона'
@@ -73,9 +72,7 @@ def conclude_contract(message):
     else:
         bot.send_message(message.from_user.id, text=user_wrong, reply_markup=back_to_start())
 
-
-
-@bot.callback_query_handler(func=lambda call: True) # Обработка нажатия на кнопку
+@bot.callback_query_handler(func = lambda call: True) # Обработка нажатия на кнопку
 def callback_worker(call): # обрабатывем кнопки
     if call.data == "enter_as_client": # Если пользователь зарегистрирован заходим сюда
         bot.register_next_step_handler(call.message, enter_as_client)
@@ -87,4 +84,3 @@ def callback_worker(call): # обрабатывем кнопки
         welcome_message_output(call) 
 
 bot.polling(none_stop=True)
-
