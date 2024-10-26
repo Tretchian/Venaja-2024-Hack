@@ -105,9 +105,8 @@ def validate_phone_number(regex, phone_number):
 
 # Вход как клиент ТТК
 def enter_as_client(message):
-
     # Если найден номер догвора по маске вход удачен
-    if re.search(r'[516]+[0-9]{6}', message.text):
+    if re.search(r'\b516\d{6}\b', message.text):
         print('succses_enter')
         next_step_and_output_message(message,
                                      welcome_text,
@@ -131,8 +130,7 @@ def enter_as_client(message):
 
 # Заключение нового контракта
 def conclude_contract(message):
-
-    # Валидация
+    # Валидация номера телефона
     if validate_phone_number(phone_pattern, message.text):
 
         # Находим номер в строке
@@ -141,11 +139,8 @@ def conclude_contract(message):
         # Убираем из текста номер
         adress = message.text.replace(phone_number, '', 1)
 
-        # Убираем ненужные символы
-        adress_filtered = "".join(c for c in adress if c.isalpha())
-
         print(phone_number)
-        print(adress_filtered)
+        print(adress)
         next_step_and_output_message(message,
                                      welcome_text,
                                      keyboard_welcoming(),
