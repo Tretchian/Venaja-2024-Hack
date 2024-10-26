@@ -6,15 +6,16 @@ import os
 
 def convert_ogg_to_wav(ogg_file, wav_file):
      #Путь к проге для конвертации
-     ffmpeg_path = r"FFmpeg\ffmpeg.exe"
+     #cleaffmpeg_path = r"/home/tretchian/projects/Venaja-2024-Hack/Voise-2-text/FFmpeg/ffmpeg.exe"
      #Команда для консоли
-     command = [ffmpeg_path, "-i", ogg_file, wav_file]
+    #  command = ['ffmpeg', "-i", ogg_file, wav_file]
+     command = ['ffmpeg', "-i", 'audiofile/ttk.ogg', 'audiofile/ttk.wav']
      #Запуск консоли и выполнение команды
-     subprocess.run(command, shell=True)
+     subprocess.run(command)
 
 
 def Voise_to_text(namefile):
-    model = Model(r"model/vosk-model-small-ru-0.22")
+    model = Model(r"/home/tretchian/projects/Venaja-2024-Hack/Voise-2-text/model/vosk-model-small-ru-0.22")
     # Устанавливаем Frame Rate
     FRAME_RATE = 16000
     #Подключение модели транскрипции
@@ -45,11 +46,11 @@ def main():
     convert_ogg_to_wav(ogg_file_path, wav_file_path)
 
     #Вызов функции транскрибции
-    print(Voise_to_text(name_audio_file))
+    #print(Voise_to_text(name_audio_file))
 
     #Удаление гс
     #os.remove(ogg_file_path)
-    os.remove(wav_file_path)
+    #os.remove(wav_file_path)
 
 if __name__ == "__main__":
     main()
