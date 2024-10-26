@@ -3,7 +3,7 @@ import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from multipledispatch import dispatch
-
+import funct
 
 class mailSender():
     # Настройки отправителя и получателя
@@ -92,10 +92,19 @@ class mailSender():
             return
         self.receiver_list.remove(receiver_address)
 
-'''Пример использования класса
+
+mess = "Хочу купить телефон"
+mess_tokens = funct.MessagePreprocessing(mess)
+print(mess_tokens)
+all_wants = funct.GetWantsWords()
+print(all_wants)
+final_wants = funct.GetFinalWant(all_wants, mess_tokens)
+print(final_wants)
+
+
 ms = mailSender("safonovila7@gmail.com")
-ms.set_account_password(os.getenv('EMAIL_PASS'))
-ms.create_message(['тема','текст'])
+# Точно не пароль
+ms.set_account_password("qhop xdvu pfsn nmcp")
+ms.create_message(funct.CreateLettter(516, mess, final_wants))
 
 ms.send_email_tolist(["safonovila7@gmail.com","fe-ct@mail.ru","maxbek294@gmail.com"])
-'''
