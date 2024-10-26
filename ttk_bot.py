@@ -20,7 +20,7 @@ user_wrong = 'Неправильно, попробуйте еще раз'
 
 
 # Клавиатура возврата в начало
-def back_to_start_keyboard():
+def keyboard_back_to_welcome():
     # Инициализация клавиатуры в один ряд
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     # Кнопка «Назад»
@@ -32,7 +32,7 @@ def back_to_start_keyboard():
 
 
 # Клавиатура приветственная
-def welcome_keyboard():
+def keyboard_welcoming():
     # Инициализация клавиатуры в один ряд
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     # Кнопка «Войти как клиент ТТК»
@@ -70,15 +70,18 @@ def next_step_and_output_message(message,
 
 # Конструктор отправки сообщения и следющего шага для кнопок
 def next_step_and_output_message_callback(call,
-                                 user_output_text,
-                                 keyboard,
-                                 next_func):
+                                          user_output_text,
+                                          keyboard,
+                                          next_func):
     # Очистка предыдущих обработчиков
     bot.clear_step_handler_by_chat_id(call.message.chat.id)
     # Отправка сообщения пользователю
-    bot.send_message(call.message.chat.id, user_output_text, reply_markup=keyboard)
+    bot.send_message(call.message.chat.id,
+                     user_output_text,
+                     reply_markup=keyboard)
     # Следующий запрос
-    bot.register_next_step_handler(call.message, next_func)
+    bot.register_next_step_handler(call.message,
+                                   next_func)
 
 
 # Паттерн телефона
@@ -108,21 +111,21 @@ def enter_as_client(message):
         print('succses_enter')
         next_step_and_output_message(message,
                                      welcome_text,
-                                     welcome_keyboard(),
-                                     start_text_message)
+                                     keyboard_welcoming(),
+                                     user_first_choice)
 
     # Возврат назад
     elif message.text.lower() == 'назад':
         next_step_and_output_message(message,
                                      welcome_text,
-                                     welcome_keyboard(),
-                                     start_text_message)
+                                     keyboard_welcoming(),
+                                     user_first_choice)
 
     # Неправильный ввод и повтор ввода
     else:
         next_step_and_output_message(message,
                                      user_wrong,
-                                     back_to_start_keyboard(),
+                                     keyboard_back_to_welcome(),
                                      enter_as_client)
 
 
@@ -145,23 +148,22 @@ def conclude_contract(message):
         print(adress_filtered)
         next_step_and_output_message(message,
                                      welcome_text,
-                                     welcome_keyboard(),
-                                     start_text_message)
+                                     keyboard_welcoming(),
+                                     user_first_choice)
 
     # Возврат назад
     elif message.text.lower() == 'назад':
         next_step_and_output_message(message,
                                      welcome_text,
-                                     welcome_keyboard(),
-                                     start_text_message)
+                                     keyboard_welcoming(),
+                                     user_first_choice)
 
     # Неправильный ввод и повтор ввода
     else:
         next_step_and_output_message(message,
                                      user_wrong,
-                                     back_to_start_keyboard(),
+                                     keyboard_back_to_welcome(),
                                      conclude_contract)
-
 
 
 # Обработка начала диалога
@@ -171,7 +173,7 @@ def welcome_message_output(message):
     # Отправка сообщения пользователю
     bot.send_message(message.from_user.id,
                      text=welcome_text,
-                     reply_markup=welcome_keyboard())
+                     reply_markup=keyboard_welcoming())
 
 
 @bot.message_handler(content_types=['voice'])   # Обработка голосовых
@@ -182,37 +184,44 @@ def start_voice_message(message):
 # Обработка текстовых
 @bot.message_handler(content_types=['text'])
 # Начальное сообщение
-def start_text_message(message):
+def user_first_choice(message):
     if message.text in ['1', 'Войти как клиент ТТК', 'Войти', 'войти']:
         next_step_and_output_message(message,
                                      user_contract_enter_text,
-                                     back_to_start_keyboard(),
+                                     keyboard_back_to_welcome(),
                                      enter_as_client)
-
     elif message.text in ['2', 'Заключить новый договор']:
         next_step_and_output_message(message,
                                      user_contact_info_text,
-                                     back_to_start_keyboard(),
+                                     keyboard_back_to_welcome(),
                                      conclude_contract)
-
     else:
         next_step_and_output_message(message,
                                      bot_not_understand_text,
                                      None,
-                                     start_text_message)
+                                     user_first_choice)
 
 
 # Обработка нажатия на кнопку
 @bot.callback_query_handler(func=lambda call: True)
 def callbacker(call):
     if call.data == 'enter_as_client':
-        next_step_and_output_message_callback(call, user_contract_enter_text, back_to_start_keyboard(), enter_as_client)
+        next_step_and_output_message_callback(call,
+                                              user_contract_enter_text,
+                                              keyboard_back_to_welcome(),
+                                              enter_as_client)
 
     elif call.data == 'conclude_contract':
-        next_step_and_output_message_callback(call, user_contact_info_text, back_to_start_keyboard(), conclude_contract)
+        next_step_and_output_message_callback(call,
+                                              user_contact_info_text,
+                                              keyboard_back_to_welcome(),
+                                              conclude_contract)
 
     elif call.data == 'back_to_start':
-        next_step_and_output_message_callback(call, welcome_text, welcome_keyboard(), start_text_message)
+        next_step_and_output_message_callback(call,
+                                              welcome_text,
+                                              keyboard_welcoming(),
+                                              user_first_choice)
 
 
 bot.polling(none_stop=True)
