@@ -45,3 +45,4 @@ CREATE TABLE IF NOT EXISTS kwords_wants (
 
 connection.commit()
 connection.close()
+
