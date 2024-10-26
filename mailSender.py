@@ -38,7 +38,9 @@ class mailSender():
         self.message.attach(MIMEText(body, "plain"))
         return self.message
 
-ms = mailSender("safonovila7@gmail.com","safonovila7@gmail.com")
-ms.create_message("Субъект","Суть сообщения тут")
-ms.set_account_password(os.getenv('EMAIL_PASS'))
-ms.send_email()
+
+#Пример использования класса
+# ms = mailSender("safonovila7@gmail.com","safonovila7@gmail.com")
+# ms.create_message("Субъект","Суть сообщения тут")
+# ms.set_account_password(os.getenv('EMAIL_PASS'))
+# ms.send_email()
