@@ -7,7 +7,7 @@ class mailSender():
     # Настройки отправителя и получателя
     sender_email = "safonovila7@gmail.com"
     receiver_email = "safonovila7@gmail.com"
-    app_password = os.getenv('EMAIL_PASS')
+    app_password = ""
 
     def __init__(self,sender_address:str,reciever_address:str):
         self.sender_email = sender_address
@@ -40,4 +40,5 @@ class mailSender():
 
 ms = mailSender("safonovila7@gmail.com","safonovila7@gmail.com")
 ms.create_message("Субъект","Суть сообщения тут")
+ms.set_account_password(os.getenv('EMAIL_PASS'))
 ms.send_email()
