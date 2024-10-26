@@ -40,7 +40,14 @@ class mailSender():
         self.message["Subject"] = subject
         self.message.attach(MIMEText(body, "plain"))
         return self.message
-
+    
+    def create_message(self, contents: list) -> MIMEMultipart:
+        # Записывет сообщение в свой объект и возвращает его же
+        self.message["From"] = self.sender_email
+        self.message["To"] = self.receiver_email
+        self.message["Subject"] = contents[0]
+        self.message.attach(MIMEText(contents[1], "plain"))
+        return self.message
 
 '''Пример использования класса
 ms = mailSender("safonovila7@gmail.com","safonovila7@gmail.com")
@@ -48,3 +55,7 @@ ms.create_message("Субъект","Суть сообщения тут")
 ms.set_account_password(os.getenv('EMAIL_PASS'))
 ms.send_email()
 '''
+ms = mailSender("safonovila7@gmail.com","safonovila7@gmail.com")
+ms.create_message(['Тема','текст'])
+ms.set_account_password(os.getenv('EMAIL_PASS'))
+ms.send_email()
