@@ -58,13 +58,26 @@ def voice_message_download(message):
 # Конструктор отправки сообщения и следущего шага
 def next_step_and_output_message(message,
                                  user_output_text,
-                                 keyboard, next_func):
+                                 keyboard,
+                                 next_func):
     # Отправка сообщения пользователю
     bot.send_message(message.from_user.id,
                      text=user_output_text,
                      reply_markup=keyboard)
     # Указание следующий функции
     bot.register_next_step_handler(message, next_func)
+
+
+def next_step_and_output_message_callback(call,
+                                 user_output_text,
+                                 keyboard,
+                                 next_func):
+    # Отправка сообщения пользователю
+    bot.send_message(call.message.chat.id,
+                     text=user_output_text,
+                     reply_markup=keyboard)
+    # Указание следующий функции
+    bot.register_next_step_handler(call.message, next_func)
 
 
 # Паттерн телефона
@@ -105,7 +118,6 @@ def start_voice_message(message):
 @bot.message_handler(content_types=['text'])
 # Начальное сообщение
 def start_text_message(message):
-
     if message.text in ['1', 'Войти как клиент ТТК', 'Войти', 'войти']:
         next_step_and_output_message(message,
                                      user_contract_enter_text,
@@ -131,6 +143,10 @@ def enter_as_client(message):
     # Если найден номер догвора по маске вход удачен
     if re.search(r'[516]+[0-9]{6}', message.text):
         print('succses_enter')
+        next_step_and_output_message(message,
+                                     welcome_text,
+                                     welcome_keyboard(),
+                                     start_text_message)
 
     # Возврат назад
     elif message.text.lower() == 'назад':
@@ -164,6 +180,10 @@ def conclude_contract(message):
 
         print(phone_number)
         print(adress_filtered)
+        next_step_and_output_message(message,
+                                     welcome_text,
+                                     welcome_keyboard(),
+                                     start_text_message)
 
     # Возврат назад
     elif message.text.lower() == 'назад':
@@ -181,21 +201,31 @@ def conclude_contract(message):
 
 
 # Обработка нажатия на кнопку
-@bot.callback_query_handler(func=lambda call: True)
+@bot.callback_query_handler(func=lambda call: call.data == 'enter_as_client')
 # Обрабатывем кнопки
-def callback_worker(call):
+def callback_entering(call):
+        next_step_and_output_message_callback(call,
+                                     user_contract_enter_text,
+                                     back_to_start_keyboard(),
+                                     enter_as_client)
 
-    # Если пользователь зарегистрирован заходим сюда
-    if call.data == "enter_as_client":
-        bot.register_next_step_handler(call.message, enter_as_client)
 
-    # Если хочет заключить договор
-    elif call.data == "conclude_contract":
-        bot.register_next_step_handler(call.message, enter_as_client)
+@bot.callback_query_handler(func=lambda call: call.data == 'conclude_contract')
+# Обрабатывем кнопки
+def callback_concluding(call):
+    next_step_and_output_message_callback(call,
+                                     user_contact_info_text,
+                                     back_to_start_keyboard(),
+                                     conclude_contract)
 
-    # Возврат обратно
-    elif call.data == "back_to_start":
-        welcome_message_output(call)
+
+@bot.callback_query_handler(func=lambda call: call.data == 'back_to_start')
+# Возврат обратно
+def callback_back_to_start(call):
+    next_step_and_output_message_callback(call,
+                                     welcome_text,
+                                     welcome_keyboard(),
+                                     start_text_message)
 
 
 bot.polling(none_stop=True)
