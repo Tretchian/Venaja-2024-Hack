@@ -16,5 +16,7 @@ atpublic==5.0
     # via aiosmtpd
 attrs==24.2.0
     # via aiosmtpd
+multipledispatch==1.0.0
+    # via venaja-2024-hack
 pep8==1.7.1
     # via venaja-2024-hack

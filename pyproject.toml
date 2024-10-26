@@ -8,6 +8,7 @@ authors = [
 dependencies = [
     "aiosmtpd>=1.4.6",
     "pep8>=1.7.1",
+    "multipledispatch>=1.0.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
