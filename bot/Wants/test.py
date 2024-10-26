@@ -23,13 +23,13 @@ def MessagePreprocessing(message):
     return clearTokens_list
 
              
-def GetWantsWords(link_db = r'bot\Wants\my_database.db'):
+def GetWantsWords():
     """Достает слова из базы данных и определяет их намерение"""
     # Вставить ссылку на базу данных, здесь просто заглушка
-    connection = sqlite3.connect(link_db)
+    connection = sqlite3.connect(r"db\Main_DB.db")
     cursor = connection.cursor()
     # Через execute делаем все запросы
-    cursor.execute('SELECT * from words')
+    cursor.execute('SELECT wants_name, Key_word from wants_names LEFT JOIN kwords_wants')
     # Здессь храниться список кортежей
     words_list = cursor.fetchall()
     connection.close()
@@ -50,7 +50,49 @@ def GetFinalWant(wants_words, clearTokens):
     # Возвращает намерения
     return wants
     
-# text = "Я хочу купить новый телефон, но у меня нет денег."
-# prepared_text = MessagePreprocessing(text)
-# res = GetWantsWords()
-# print(GetFinalWant(res, prepared_text))
+# connection = sqlite3.connect(r"db\Main_DB.db")
+# cursor = connection.cursor()
+# cursor.execute("INSERT INTO Client VALUES(?,?,?,?,?,?,?,?,?,?)", (1, 516, 516, "Иван", "Запара", "Владимирович", "84950307887", "Юфимцева 16", 2, 2))
+# connection.commit()
+# connection.close()
+
+def CreateLettter(Telegram_id, Telegram_message, wants):
+    """Принимает намерения из функции"""
+    connection = sqlite3.connect(r"db\Main_DB.db")
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT Name, Surname, Middlename, ID_Pact, PhoneNumber, Address FROM Client WHERE TG_ID = ?", (str(Telegram_id),))
+
+    # res_list ["Имя, Фамилия, Отчество, Номер Договора, Номер Телефона, Физ Адрес"]
+    res_list = cursor.fetchone()
+    reserved_wants = set(["Привет", "Пока"])
+    # Нужно будет запретить удалять "приветствие и пока" из базы данных
+    # намерений, чтоб программа работала
+
+    # el ∊ wants and el !∊ reserved_wants 
+    res = list(set(wants).difference(reserved_wants))
+
+    if len(res) == 0:
+        theme = "Намерения непонятны"
+    else:
+        theme = str(res[0])
+    
+
+    lettertext = f"Клиент с номером договора {res_list[3]}, "
+    lettertext += f"{res_list[0]} {res_list[1]} {res_list[2]},\n"
+    lettertext += f"с номером телефона - {res_list[4]}\n"
+    lettertext += f"Проживающего по адресу - {res_list[5]}\n"
+    lettertext += f"Полное сообщение от клиента:\n\t {Telegram_message}"
+    
+    # Получаем список из двух элементов "Тема письма, которой будет выступать намерение клиента"
+    # И второй элемент - текстъ письма
+    return [theme, lettertext]
+    
+# mess = "Хочу купить телефон"
+# mess_tokens = MessagePreprocessing(mess)
+# print(mess_tokens)
+# all_wants = GetWantsWords()
+# print(all_wants)
+# final_wants = GetFinalWant(all_wants, mess_tokens)
+# print(final_wants)
+# print(CreateLettter(516, mess, final_wants)[1])
