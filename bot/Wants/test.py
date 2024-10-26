@@ -23,13 +23,13 @@ def MessagePreprocessing(message):
     return clearTokens_list
 
              
-def GetWantsWords(link_db = r'bot\Wants\my_database.db'):
+def GetWantsWords(link_db = r'my_database.db'):
     """Достает слова из базы данных и определяет их намерение"""
     # Вставить ссылку на базу данных, здесь просто заглушка
     connection = sqlite3.connect(link_db)
     cursor = connection.cursor()
     # Через execute делаем все запросы
-    cursor.execute('SELECT * from words')
+    cursor.execute('SELECT wants_name, Key_word from wants_names LEFT JOIN kwords_wants')
     # Здессь храниться список кортежей
     words_list = cursor.fetchall()
     connection.close()
@@ -40,17 +40,18 @@ def GetFinalWant(wants_words, clearTokens):
     """Принимает на вход список всех слов соответствующих намерениям,
     и список приведенных слов из сообщения"""
     # Намерения из сообщения
-    wants = []
+    wants = set()
 
     for wants_word in wants_words:
+        print(wants_word)
         # Перебор кортежей, где [2] это ключевые слова
-        if wants_word[2] in clearTokens:
-            wants.append(wants_word[1])
+        if wants_word[1] in clearTokens:
+            wants.add(wants_word[0])
 
     # Возвращает намерения
-    return wants
+    return list(wants)
     
-# text = "Я хочу купить новый телефон, но у меня нет денег."
-# prepared_text = MessagePreprocessing(text)
-# res = GetWantsWords()
-# print(GetFinalWant(res, prepared_text))
+text = "Я хочу купить новый телефон, но у меня нет денег."
+prepared_text = MessagePreprocessing(text)
+res = GetWantsWords()
+print(GetFinalWant(res, prepared_text))
