@@ -52,13 +52,8 @@ def voice_message_download(message):
     file_info = bot.get_file(message.voice.file_id)
     file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(bot_token,
                                                                           file_info.file_path))
-    #with open(f'{message.from_user.id}.ogg', 'wb') as f:
-     #   f.write(file.content)
     with open(f'{message.from_user.id}.ogg', 'wb') as f:
-    #with open(f'/home/tretchian/projects/Venaja-2024-Hack/Voise2text/audiofile/{message.from_user.id}.ogg', 'wb') as f:
         f.write(file.content)
-        #Voise2text.conver
-        #convert_ogg_to_wav('124', '2142')
         text = Voise_to_text(str(message.from_user.id))
         print(text)
         bot.send_message(message.chat.id, text)
