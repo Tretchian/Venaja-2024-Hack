@@ -3,6 +3,9 @@ import requests
 import re
 from db import data_base
 from telebot import types
+from Voise2text.VoiceToText import Voise_to_text, convert_ogg_to_wav
+from telebot import types
+from bot.Wants.funct import *
 
 
 # Токен бота
@@ -18,7 +21,7 @@ user_contract_enter_text = 'Пожалуйста введите свой ном�
 user_contact_info_text = 'Укажите свое ФИО, контактный номер и адрес для подключения услуги (Иванов, Иван, Иванович, +79876543210, г.Москва ул. Мира 45)'
 bot_not_understand_text = 'Извини, я тебя не понял. Давай еще раз'
 user_wrong = 'Неправильно, попробуйте еще раз'
-
+send_to_admins_success = 'Ваш запрос отправлен операторам!'
 
 # Клавиатура возврата в начало
 def keyboard_back_to_welcome():
@@ -58,7 +61,6 @@ def keyboard_back_to_enter():
     keyboard.add(key_back)
     return keyboard
 
-
 # Сохранение аудио
 def voice_message_download(message):
     file_info = bot.get_file(message.voice.file_id)
@@ -66,6 +68,15 @@ def voice_message_download(message):
                                                                           file_info.file_path))
     with open(f'{message.from_user.id}.ogg', 'wb') as f:
         f.write(file.content)
+        text = Voise_to_text(str(message.from_user.id))
+        print(text)
+        print(MessagePreprocessing(text))
+        final_wants = GetFinalWant(GetWantsWords(),MessagePreprocessing(text))
+
+        if CreateLettter(message.from_user.id, text, final_wants):
+            bot.send_message(message.chat.id, send_to_admins_success)
+        else:
+            bot.send_message(message.chat.id, bot_not_understand_text)
 
 
 # Конструктор отправки сообщения и следущего шага
@@ -191,7 +202,7 @@ def conclude_contract(message):
 # Вывод данных пользоватлея по тарифам и услугам
 def user_datas(user_id, pact_id):
     data = data_base.check_user_services_and_tariffs(pact_id)
-    bot.send_message(user_id, data, keyboard_back_to_enter())
+    bot.send_message(user_id, data, reply_markup= keyboard_back_to_enter())
 
 
 # Обработка начала диалога
