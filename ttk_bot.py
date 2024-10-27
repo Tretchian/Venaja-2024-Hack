@@ -1,6 +1,7 @@
 import telebot
 import requests
 import re
+from db import data_base
 from Voise2text.VoiceToText import Voise_to_text, convert_ogg_to_wav
 from telebot import types
 
@@ -15,7 +16,7 @@ bot = telebot.TeleBot(bot_token)
 
 welcome_text = 'Здраствуйте, я бот-помощник ТТК, Чтобы войти напишите "Войти как клиент ТТК". Если хотите заключить новый догвор, пожалуйста напишите "Заключить новый договор"'
 user_contract_enter_text = 'Пожалуйста введите свой номер договора, чтобы я понял кто вы'
-user_contact_info_text = 'Укажите свой контактный номер и адрес для подключения услуги'
+user_contact_info_text = 'Укажите свое ФИО, контактный номер и адрес для подключения услуги (Иванов, Иван, Иванович, +79876543210, г.Москва ул. Мира 45)'
 bot_not_understand_text = 'Извини, я тебя не понял. Давай еще раз'
 user_wrong = 'Неправильно, попробуйте еще раз'
 
@@ -112,11 +113,17 @@ def validate_phone_number(regex, phone_number):
 def enter_as_client(message):
     # Если найден номер догвора по маске вход удачен
     if re.search(r'\b516\d{6}\b', message.text):
-        print('succses_enter')
-        next_step_and_output_message(message,
-                                     welcome_text,
+        user_data = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
+        if user_data :
+            next_step_and_output_message(message,
+                                     "Вы есть",
                                      keyboard_welcoming(),
                                      user_first_choice)
+        else:
+            next_step_and_output_message(message,
+                                     "Такой номер не найден",
+                                     keyboard_back_to_welcome(),
+                                     enter_as_client)
 
     # Возврат назад
     elif message.text.lower() == 'назад':
@@ -137,19 +144,23 @@ def enter_as_client(message):
 def conclude_contract(message):
     # Валидация номера телефона
     if validate_phone_number(phone_pattern, message.text):
-
+        user_info = []
         # Находим номер в строке
         phone_number = re.search(phone_pattern, message.text)[0]
+        user_info = message.text.split(',')
+        if len(user_info) == 5:
+            user_info.insert(0, message.from_user.id)
+            data_base.register_user(user_info)
 
-        # Убираем из текста номер
-        adress = message.text.replace(phone_number, '', 1)
-
-        print(phone_number)
-        print(adress)
-        next_step_and_output_message(message,
-                                     welcome_text,
-                                     keyboard_welcoming(),
-                                     user_first_choice)
+            next_step_and_output_message(message,
+                                         "Вы успешно зарегистрированы",
+                                         keyboard_welcoming(),
+                                         user_first_choice)
+        else:
+            next_step_and_output_message(message,
+                                     user_wrong,
+                                     keyboard_back_to_welcome(),
+                                     conclude_contract)
 
     # Возврат назад
     elif message.text.lower() == 'назад':
