@@ -62,6 +62,15 @@ def keyboard_back_to_enter():
     return keyboard
 
 
+# Сохранение аудио
+def voice_message_download(message):
+    file_info = bot.get_file(message.voice.file_id)
+    file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(bot_token,
+                                                                          file_info.file_path))
+    with open(f'{message.from_user.id}.ogg', 'wb') as f:
+        f.write(file.content)
+
+
 # Конструктор отправки сообщения и следущего шага
 def next_step_and_output_message(message,
                                  user_output_text,
