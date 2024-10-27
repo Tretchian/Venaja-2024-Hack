@@ -108,7 +108,7 @@ def validate_phone_number(regex, phone_number):
 def enter_as_client(message):
     # Если найден номер догвора по маске вход удачен
     if re.search(r'\b516\d{6}\b', message.text):
-        user_data = data_base.check_user_in_db(re.search(r'\b516\d{6}\b')[0])
+        user_data = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
         if user_data :
             next_step_and_output_message(message,
                                      "Вы есть",
