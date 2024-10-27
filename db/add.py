@@ -18,7 +18,7 @@ for i in range(0, len(kwords_wants)):
 # Добавление в wants_names
 Wants_name = ['купить', 'поменять', 'привет', 'пока']
 for i in Wants_name:
-    cursor.execute("INSERT INTO wants_names VALUES (?)", (i,))
+    cursor.execute("INSERT INTO wants_names(wants_name) VALUES (?)", (i,))
     
 connection.commit()
 connection.close()
