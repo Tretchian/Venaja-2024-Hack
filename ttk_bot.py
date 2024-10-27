@@ -2,13 +2,11 @@ import telebot
 import requests
 import re
 from db import data_base
-from Voise2text.VoiceToText import Voise_to_text, convert_ogg_to_wav
 from telebot import types
-from bot.Wants.funct import *
 
 
 # Токен бота
-bot_token = '7354302705:AAGNwYG8K9szJusZbV4PJgf98b12I97-zOk'
+bot_token = '7659124438:AAGJEiu7fVOET0Vy_hypEfdq0YZTJ25xwJI'
 
 
 # Объект тг-бот
@@ -20,7 +18,6 @@ user_contract_enter_text = 'Пожалуйста введите свой ном�
 user_contact_info_text = 'Укажите свое ФИО, контактный номер и адрес для подключения услуги (Иванов, Иван, Иванович, +79876543210, г.Москва ул. Мира 45)'
 bot_not_understand_text = 'Извини, я тебя не понял. Давай еще раз'
 user_wrong = 'Неправильно, попробуйте еще раз'
-send_to_admins_success = 'Ваш запрос отправлен'
 
 
 # Клавиатура возврата в начало
@@ -50,6 +47,18 @@ def keyboard_welcoming():
     return keyboard
 
 
+# Назад к входу по номеру договора
+def keyboard_back_to_enter():
+    # Инициализация клавиатуры в один ряд
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    # Кнопка «Назад»
+    key_back = types.InlineKeyboardButton(text='Назад',
+                                          callback_data='back_to_enter')
+    # Добавялем кнопку
+    keyboard.add(key_back)
+    return keyboard
+
+
 # Сохранение аудио
 def voice_message_download(message):
     file_info = bot.get_file(message.voice.file_id)
@@ -57,15 +66,6 @@ def voice_message_download(message):
                                                                           file_info.file_path))
     with open(f'{message.from_user.id}.ogg', 'wb') as f:
         f.write(file.content)
-        text = Voise_to_text(str(message.from_user.id))
-        print(text)
-        print(MessagePreprocessing(text))
-        final_wants = GetFinalWant(GetWantsWords(),MessagePreprocessing(text))
-        if CreateLettter(message.from_user.id, text, final_wants):
-            bot.send_message(message.chat.id, send_to_admins_success)
-        else:
-            bot.send_message(message.chat.id, bot_not_understand_text)
-
 
 
 # Конструктор отправки сообщения и следущего шага
@@ -121,17 +121,17 @@ def enter_as_client(message):
     # Если найден номер догвора по маске вход удачен
     if re.search(r'\b516\d{6}\b', message.text):
         # Номер договора полтьзователя
-        user_pact_id = message.text
+        is_user = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
+        pact_id_user = re.search(r'\b516\d{6}\b', message.text)[0]
+        # Имя пользователя
+        username = data_base.get_name_by_pact_id(pact_id_user)
         # Проверка в базе пользователя
-        user_data = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
-        if user_data:
-            next_step_and_output_message(message,
-                                         "Вы есть",
-                                         keyboard_welcoming(),
-                                         user_first_choice)
+        if is_user:
+            bot.send_message(message.from_user.id, f'добрый день, {username}')
+            user_datas(message.from_user.id, pact_id_user)
         else:
             next_step_and_output_message(message,
-                                         "Такой номер не найден",
+                                         "Ошибка, номер не найден",
                                          keyboard_back_to_welcome(),
                                          enter_as_client)
 
@@ -162,12 +162,11 @@ def conclude_contract(message):
             # Добавляем ID пользователя
             user_info.insert(0, message.from_user.id)
             # Добавляем пользователя в DB
-            data_base.register_user(user_info)
-
+            id_pact = data_base.register_user(user_info)
             next_step_and_output_message(message,
-                                         "Вы успешно зарегистрированы",
-                                         keyboard_welcoming(),
-                                         user_first_choice)
+                                         f"Вы успешно зарегестрированы {id_pact}, Пожалуйста введите свой номер договора",
+                                         keyboard_back_to_welcome(),
+                                         enter_as_client)
         else:
             next_step_and_output_message(message,
                                          user_wrong,
@@ -189,6 +188,12 @@ def conclude_contract(message):
                                      conclude_contract)
 
 
+# Вывод данных пользоватлея по тарифам и услугам
+def user_datas(user_id, pact_id):
+    data = data_base.check_user_services_and_tariffs(pact_id)
+    bot.send_message(user_id, data, keyboard_back_to_enter())
+
+
 # Обработка начала диалога
 @bot.message_handler(commands=['start'])
 # Вывод приветственного сообщения
@@ -199,11 +204,10 @@ def welcome_message_output(message):
                      reply_markup=keyboard_welcoming())
 
 
-@bot.message_handler(content_types=['voice'])   # Обработка голосовых
-def voice(voice):
-    print(voice.from_user.id)
-    if data_base.check_user_in_db_tg(voice.from_user.id):
-        voice_message_download(voice)
+# Обработка голосовых
+@bot.message_handler(content_types=['voice'])
+def start_voice_message(message):
+    voice_message_download(message)
 
 
 # Обработка текстовых
@@ -247,6 +251,12 @@ def callbacker(call):
                                               welcome_text,
                                               keyboard_welcoming(),
                                               user_first_choice)
+
+    elif call.data == 'back_to_enter':
+        next_step_and_output_message_callback(call,
+                                              user_contract_enter_text,
+                                              keyboard_back_to_welcome(),
+                                              enter_as_client)
 
 
 bot.polling(none_stop=True)
