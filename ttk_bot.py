@@ -32,6 +32,20 @@ def keyboard_back_to_welcome():
     return keyboard
 
 
+# Клавиатура в меню и назад к вводу договора
+def keyboard_back_to_menu_and_back_to_enter():
+    # Инициализация клавиатуры в один ряд
+    keyboard = types.InlineKeyboardMarkup(row_width=2)
+    # Кнопка «Назад»
+    key_back_to_menu = types.InlineKeyboardButton(text='Назад в меню',
+                                          callback_data='back_to_start')
+    
+    key_back = types.InlineKeyboardButton(text='Назад',
+                                          callback_data='back_to_choice')
+    # Добавялем кнопку
+    keyboard.add(key_back, key_back_to_menu)
+    return keyboard
+
 # Клавиатура приветственная
 def keyboard_welcoming():
     # Инициализация клавиатуры в один ряд
@@ -46,6 +60,36 @@ def keyboard_welcoming():
     keyboard.add(key_ttk_user_enter, key_ttk_user_conclude_contract)
     return keyboard
 
+
+# Клавиатура выбора услиуги или тарифа
+def keyboard_plan_or_service():
+     # Инициализация клавиатуры в один ряд
+    keyboard = types.InlineKeyboardMarkup(row_width=2)
+    # Кнопка «Услуга»
+    key_service = types.InlineKeyboardButton(text='Услуга',
+                                             callback_data='service')
+    # Кнопка «Тариф»
+    key_plan = types.InlineKeyboardButton(text='Тариф',
+                                          callback_data='plan')
+    # Кнопка "Назад"
+    key_back = types.InlineKeyboardButton(text='Назад',
+                                          callback_data='back_to_start')
+    # Добавляем кнопки в клавиатуру
+    keyboard.add(key_service, key_plan, key_back)
+    return keyboard
+
+
+# Назад к входу по номеру договора
+def keyboard_back_to_enter():
+    # Инициализация клавиатуры в один ряд
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    # Кнопка «Назад»
+    key_back = types.InlineKeyboardButton(text='Назад',
+                                          callback_data='back_to_enter')
+    # Добавялем кнопку
+    keyboard.add(key_back)
+    return keyboard
+    
 
 # Сохранение аудио
 def voice_message_download(message):
@@ -108,18 +152,19 @@ def validate_phone_number(regex, phone_number):
 def enter_as_client(message):
     # Если найден номер догвора по маске вход удачен
     if re.search(r'\b516\d{6}\b', message.text):
-        # Номер договора полтьзователя
-        user_pact_id = message.text
+        # Номер договора полтьзователя  
+        user_pact_id = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
+        # Имя пользователя
+        username = data_base.get_name_by_pact_id(user_pact_id)
         # Проверка в базе пользователя
-        user_data = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
-        if user_data:
+        if user_pact_id:
             next_step_and_output_message(message,
-                                         "Вы есть",
-                                         keyboard_welcoming(),
-                                         user_first_choice)
+                                         f"Добрый день, {username}",
+                                         keyboard_plan_or_service(),
+                                         user_second_choice)
         else:
             next_step_and_output_message(message,
-                                         "Такой номер не найден",
+                                         "Ошибка, номер не найден",
                                          keyboard_back_to_welcome(),
                                          enter_as_client)
 
@@ -154,8 +199,8 @@ def conclude_contract(message):
 
             next_step_and_output_message(message,
                                          "Вы успешно зарегистрированы",
-                                         keyboard_welcoming(),
-                                         user_first_choice)
+                                         keyboard_plan_or_service(),
+                                         user_second_choice)
         else:
             next_step_and_output_message(message,
                                          user_wrong,
@@ -173,8 +218,92 @@ def conclude_contract(message):
     else:
         next_step_and_output_message(message,
                                      user_wrong,
-                                     keyboard_back_to_welcome(),
+                                     keyboard_plan_or_service(),
                                      conclude_contract)
+
+
+# Выбор услуги или тарифа
+def user_second_choice(message):
+    if message.text.lower() == 'услуга':
+        check_user_services(message)
+    elif message.text.lower() == 'тариф':
+        check_user_plan(message)
+    elif message.text.lower() == 'назад':
+        next_step_and_output_message(message,
+                                     user_contract_enter_text,
+                                     keyboard_back_to_welcome(),
+                                     enter_as_client)
+    else:
+        next_step_and_output_message(message,
+                                     'Неправильно',
+                                     keyboard_back_to_enter(),
+                                     user_second_choice)
+
+
+# Проверка тарифа
+def check_user_plan(input):
+    if input :
+        message = input
+        if message.text:
+            bot.send_message(message.from_user.id,
+                        text='112',
+                        reply_markup=keyboard_back_to_menu_and_back_to_enter())
+        elif message.text.lower() == 'назад':
+            next_step_and_output_message(message,
+                                        user_contract_enter_text,
+                                        keyboard_back_to_welcome(),
+                                        enter_as_client)
+            
+        elif message.text.lower() in ['в меню', 'назад в меню']:
+            next_step_and_output_message(message,
+                                        welcome_text,
+                                        keyboard_welcoming(),
+                                        user_first_choice)
+        else:
+            next_step_and_output_message(message,
+                                        'Неправильно',
+                                        keyboard_back_to_menu_and_back_to_enter(),
+                                        check_user_plan)
+
+    elif input:
+        call = input
+        bot.send_message(call.message.chat.id,
+                        text='223',
+                        reply_markup=keyboard_back_to_menu_and_back_to_enter())
+
+# Проверка услуги
+def check_user_services(input):
+    if input:
+        message = input
+        if message.text:
+            bot.send_message(message.chat.id,
+                        text='233',
+                        reply_markup=keyboard_back_to_menu_and_back_to_enter())
+        elif message.text.lower() == 'назад':
+            next_step_and_output_message(message,
+                                        user_contract_enter_text,
+                                        keyboard_back_to_welcome(),
+                                        enter_as_client)
+            
+        elif message.text.lower() in ['в меню', 'назад в меню']:
+            next_step_and_output_message(message,
+                                        welcome_text,
+                                        keyboard_welcoming(),
+                                        user_first_choice)
+
+        else:
+            next_step_and_output_message(message,
+                                        'Неправльно',
+                                        keyboard_back_to_menu_and_back_to_enter(),
+                                        check_user_services)
+        
+
+    elif input:
+        call = input
+        bot.send_message(call.message.chat.id,
+                        text='112',
+                        reply_markup=keyboard_back_to_menu_and_back_to_enter())
+
 
 
 # Обработка начала диалога
@@ -234,5 +363,22 @@ def callbacker(call):
                                               keyboard_welcoming(),
                                               user_first_choice)
 
+    elif call.data == 'back_to_enter':
+        next_step_and_output_message_callback(call,
+                                              user_contract_enter_text,
+                                              keyboard_back_to_welcome(),
+                                              enter_as_client)
+    
+    elif call.data == 'back_to_choice':
+        bot.clear_step_handler_by_chat_id(call.message.chat.id)
+        user_second_choice(call.message)
+
+    elif call.data == 'plan':
+        bot.clear_step_handler_by_chat_id(call.message.chat.id)
+        check_user_plan(call)
+
+    elif call.data == 'service':
+        bot.clear_step_handler_by_chat_id(call.message.chat.id)
+        check_user_service(call)
 
 bot.polling(none_stop=True)

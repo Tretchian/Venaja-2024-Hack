@@ -59,3 +59,15 @@ def check_user_in_db(ID_Pact):
     result = cursor.fetchone()
     conn.close()
     return result is not None
+
+def get_name_by_pact_id(ID_Pact):
+    conn = sqlite3.connect('db/Main_DB.db', check_same_thread=False)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT Name FROM Client WHERE ID_Pact = ?", (ID_Pact,))
+    result = cursor.fetchone()
+    
+    conn.close()
+    
+    name = result[0] if result else None
+    return name
