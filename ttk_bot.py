@@ -153,15 +153,13 @@ def enter_as_client(message):
     # Если найден номер догвора по маске вход удачен
     if re.search(r'\b516\d{6}\b', message.text):
         # Номер договора полтьзователя  
-        user_pact_id = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
+        user_pactid = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
         # Имя пользователя
-        username = data_base.get_name_by_pact_id(user_pact_id)
+        username = data_base.get_name_by_pact_id(user_pactid)
         # Проверка в базе пользователя
-        if user_pact_id:
-            next_step_and_output_message(message,
-                                         f"Добрый день, {username}",
-                                         keyboard_plan_or_service(),
-                                         user_second_choice)
+        if user_pactid:
+            bot.send_message(message.from_user.id, f'добрый день, {username}')
+            user_datas(message.from_user.id, user_pactid)
         else:
             next_step_and_output_message(message,
                                          "Ошибка, номер не найден",
@@ -195,12 +193,11 @@ def conclude_contract(message):
             # Добавляем ID пользователя
             user_info.insert(0, message.from_user.id)
             # Добавляем пользователя в DB
-            data_base.register_user(user_info)
-
+            id_pact = data_base.register_user(user_info)
             next_step_and_output_message(message,
-                                         "Вы успешно зарегистрированы",
-                                         keyboard_plan_or_service(),
-                                         user_second_choice)
+                                         f"Вы успешно зарегестрированы {id_pact}, Пожалуйста введите свой номер договора",
+                                         keyboard_back_to_welcome(),
+                                         enter_as_client)
         else:
             next_step_and_output_message(message,
                                          user_wrong,
@@ -222,89 +219,10 @@ def conclude_contract(message):
                                      conclude_contract)
 
 
-# Выбор услуги или тарифа
-def user_second_choice(message):
-    if message.text.lower() == 'услуга':
-        check_user_services(message)
-    elif message.text.lower() == 'тариф':
-        check_user_plan(message)
-    elif message.text.lower() == 'назад':
-        next_step_and_output_message(message,
-                                     user_contract_enter_text,
-                                     keyboard_back_to_welcome(),
-                                     enter_as_client)
-    else:
-        next_step_and_output_message(message,
-                                     'Неправильно',
-                                     keyboard_back_to_enter(),
-                                     user_second_choice)
-
-
-# Проверка тарифа
-def check_user_plan(input):
-    if input :
-        message = input
-        if message.text:
-            bot.send_message(message.from_user.id,
-                        text='112',
-                        reply_markup=keyboard_back_to_menu_and_back_to_enter())
-        elif message.text.lower() == 'назад':
-            next_step_and_output_message(message,
-                                        user_contract_enter_text,
-                                        keyboard_back_to_welcome(),
-                                        enter_as_client)
-            
-        elif message.text.lower() in ['в меню', 'назад в меню']:
-            next_step_and_output_message(message,
-                                        welcome_text,
-                                        keyboard_welcoming(),
-                                        user_first_choice)
-        else:
-            next_step_and_output_message(message,
-                                        'Неправильно',
-                                        keyboard_back_to_menu_and_back_to_enter(),
-                                        check_user_plan)
-
-    elif input:
-        call = input
-        bot.send_message(call.message.chat.id,
-                        text='223',
-                        reply_markup=keyboard_back_to_menu_and_back_to_enter())
-
-# Проверка услуги
-def check_user_services(input):
-    if input:
-        message = input
-        if message.text:
-            bot.send_message(message.chat.id,
-                        text='233',
-                        reply_markup=keyboard_back_to_menu_and_back_to_enter())
-        elif message.text.lower() == 'назад':
-            next_step_and_output_message(message,
-                                        user_contract_enter_text,
-                                        keyboard_back_to_welcome(),
-                                        enter_as_client)
-            
-        elif message.text.lower() in ['в меню', 'назад в меню']:
-            next_step_and_output_message(message,
-                                        welcome_text,
-                                        keyboard_welcoming(),
-                                        user_first_choice)
-
-        else:
-            next_step_and_output_message(message,
-                                        'Неправльно',
-                                        keyboard_back_to_menu_and_back_to_enter(),
-                                        check_user_services)
-        
-
-    elif input:
-        call = input
-        bot.send_message(call.message.chat.id,
-                        text='112',
-                        reply_markup=keyboard_back_to_menu_and_back_to_enter())
-
-
+def user_datas(user_id, pact_id):
+    data = data_base.check_user_services_and_tariffs(pact_id)
+    print(data)
+    bot.send_message(user_id, data)
 
 # Обработка начала диалога
 @bot.message_handler(commands=['start'])
@@ -368,17 +286,5 @@ def callbacker(call):
                                               user_contract_enter_text,
                                               keyboard_back_to_welcome(),
                                               enter_as_client)
-    
-    elif call.data == 'back_to_choice':
-        bot.clear_step_handler_by_chat_id(call.message.chat.id)
-        user_second_choice(call.message)
-
-    elif call.data == 'plan':
-        bot.clear_step_handler_by_chat_id(call.message.chat.id)
-        check_user_plan(call)
-
-    elif call.data == 'service':
-        bot.clear_step_handler_by_chat_id(call.message.chat.id)
-        check_user_service(call)
 
 bot.polling(none_stop=True)
