@@ -200,8 +200,10 @@ def welcome_message_output(message):
 
 
 @bot.message_handler(content_types=['voice'])   # Обработка голосовых
-def start_voice_message(message):
-    voice_message_download(message)
+def voice(voice):
+    print(voice.from_user.id)
+    if data_base.check_user_in_db_tg(voice.from_user.id):
+        voice_message_download(voice)
 
 
 # Обработка текстовых

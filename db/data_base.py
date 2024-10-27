@@ -59,3 +59,11 @@ def check_user_in_db(ID_Pact):
     result = cursor.fetchone()
     conn.close()
     return result is not None
+
+def check_user_in_db_tg(user_id):
+    conn = sqlite3.connect('db/Main_DB.db', check_same_thread=False)
+    cursor = conn.cursor()
+    cursor.execute("SELECT 1 FROM Client WHERE TG_ID = ?", (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result is not None
