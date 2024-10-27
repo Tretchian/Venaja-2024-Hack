@@ -93,5 +93,3 @@ class MailSender():
 
 
 
-
-
