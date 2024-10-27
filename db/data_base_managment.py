@@ -61,19 +61,22 @@ def check_user_in_db(ID_Pact):
     conn.close()
     return result is not None
 
+
+# Получение имени через Pact_ID в базе данных
 def get_name_by_pact_id(ID_Pact):
     conn = sqlite3.connect('db/Main_DB.db', check_same_thread=False)
     cursor = conn.cursor()
-    
+
     cursor.execute("SELECT Name FROM Client WHERE ID_Pact = ?", (ID_Pact,))
     result = cursor.fetchone()
-    
+
     conn.close()
-    
+
     name = result[0] if result else None
     return name
 
 
+# Проверка наличия тарифов и услуг через Pact_ID в базе данных
 def check_user_services_and_tariffs(ID_Pact):
     conn = sqlite3.connect('db/Main_DB.db', check_same_thread=False)
     cursor = conn.cursor()
@@ -115,7 +118,7 @@ def check_user_services_and_tariffs(ID_Pact):
         message += "Ваши подключённые тарифы: " + ", ".join(tariff_names) + "."
     else:
         message += "У вас не подключены тарифы."
-        
+
     if service_names:
         message += "\nВаши подключённые услуги: " + ", ".join(service_names) + "."
     else:

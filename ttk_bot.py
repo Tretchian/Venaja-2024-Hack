@@ -1,7 +1,7 @@
 import telebot
 import requests
 import re
-from db import data_base
+from db import data_base_managment
 from telebot import types
 
 
@@ -18,6 +18,9 @@ user_contract_enter_text = 'Пожалуйста введите свой ном�
 user_contact_info_text = 'Укажите свое ФИО, контактный номер и адрес для подключения услуги (Иванов, Иван, Иванович, +79876543210, г.Москва ул. Мира 45)'
 bot_not_understand_text = 'Извини, я тебя не понял. Давай еще раз'
 user_wrong = 'Неправильно, попробуйте еще раз'
+succsesful_reg = "Вы успешно зарегестрированы, номер договора: {}, Пожалуйста введите свой номер договора"
+user_welcome = 'Добрый день, {}'
+user_not_found = "Ошибка, номер не найден"
 
 
 # Клавиатура возврата в начало
@@ -57,15 +60,6 @@ def keyboard_back_to_enter():
     # Добавялем кнопку
     keyboard.add(key_back)
     return keyboard
-
-
-# Сохранение аудио
-def voice_message_download(message):
-    file_info = bot.get_file(message.voice.file_id)
-    file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(bot_token,
-                                                                          file_info.file_path))
-    with open(f'{message.from_user.id}.ogg', 'wb') as f:
-        f.write(file.content)
 
 
 # Конструктор отправки сообщения и следущего шага
@@ -121,17 +115,21 @@ def enter_as_client(message):
     # Если найден номер догвора по маске вход удачен
     if re.search(r'\b516\d{6}\b', message.text):
         # Номер договора полтьзователя
-        is_user = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
-        pact_id_user = re.search(r'\b516\d{6}\b', message.text)[0]
+        is_user = data_base_managment.check_user_in_db(re.search(r'\b516\d{6}\b',
+                                                       message.text)[0])
+        pact_id_user = re.search(r'\b516\d{6}\b',
+                                 message.text)[0]
         # Имя пользователя
-        username = data_base.get_name_by_pact_id(pact_id_user)
+        username = data_base_managment.get_name_by_pact_id(pact_id_user)
         # Проверка в базе пользователя
         if is_user:
-            bot.send_message(message.from_user.id, f'добрый день, {username}')
-            user_datas(message.from_user.id, pact_id_user)
+            bot.send_message(message.from_user.id,
+                             user_welcome.format(username))
+            user_datas(message.from_user.id,
+                       pact_id_user)
         else:
             next_step_and_output_message(message,
-                                         "Ошибка, номер не найден",
+                                         user_not_found,
                                          keyboard_back_to_welcome(),
                                          enter_as_client)
 
@@ -162,9 +160,9 @@ def conclude_contract(message):
             # Добавляем ID пользователя
             user_info.insert(0, message.from_user.id)
             # Добавляем пользователя в DB
-            id_pact = data_base.register_user(user_info)
+            id_pact = data_base_managment.register_user(user_info)
             next_step_and_output_message(message,
-                                         f"Вы успешно зарегестрированы {id_pact}, Пожалуйста введите свой номер договора",
+                                         succsesful_reg.format(id_pact),
                                          keyboard_back_to_welcome(),
                                          enter_as_client)
         else:
@@ -190,8 +188,8 @@ def conclude_contract(message):
 
 # Вывод данных пользоватлея по тарифам и услугам
 def user_datas(user_id, pact_id):
-    data = data_base.check_user_services_and_tariffs(pact_id)
-    bot.send_message(user_id, data, keyboard_back_to_enter())
+    data = data_base_managment.check_user_services_and_tariffs(pact_id)
+    bot.send_message(user_id, data, reply_markup=keyboard_back_to_enter())
 
 
 # Обработка начала диалога

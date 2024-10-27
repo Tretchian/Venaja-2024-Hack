@@ -1,4 +1,3 @@
-with open('ttk_bot.py', 'r') as file:
-    code = file.read()
-    exec(code)
+import os
 
+os.system('python ttk_bot.py')
