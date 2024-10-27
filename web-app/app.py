@@ -15,9 +15,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + DATABASE
 db = SQLAlchemy(app)
-
-
-db.create_all()
+print(db.Model)
 
 class Person(db.Model):
     __tablename__ = 'Persons'
