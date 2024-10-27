@@ -4,6 +4,7 @@ import re
 from db import data_base
 from Voise2text.VoiceToText import Voise_to_text, convert_ogg_to_wav
 from telebot import types
+from bot.Wants.funct import *
 
 
 # Токен бота
@@ -19,6 +20,7 @@ user_contract_enter_text = 'Пожалуйста введите свой ном�
 user_contact_info_text = 'Укажите свое ФИО, контактный номер и адрес для подключения услуги (Иванов, Иван, Иванович, +79876543210, г.Москва ул. Мира 45)'
 bot_not_understand_text = 'Извини, я тебя не понял. Давай еще раз'
 user_wrong = 'Неправильно, попробуйте еще раз'
+send_to_admins_success = 'Ваш запрос отправлен'
 
 
 # Клавиатура возврата в начало
@@ -57,7 +59,12 @@ def voice_message_download(message):
         f.write(file.content)
         text = Voise_to_text(str(message.from_user.id))
         print(text)
-        bot.send_message(message.chat.id, text)
+        print(MessagePreprocessing(text))
+        final_wants = GetFinalWant(GetWantsWords(),MessagePreprocessing(text))
+        if CreateLettter(message.from_user.id, text, final_wants):
+            bot.send_message(message.chat.id, send_to_admins_success)
+        else:
+            bot.send_message(message.chat.id, bot_not_understand_text)
 
 
 
@@ -113,17 +120,20 @@ def validate_phone_number(regex, phone_number):
 def enter_as_client(message):
     # Если найден номер догвора по маске вход удачен
     if re.search(r'\b516\d{6}\b', message.text):
+        # Номер договора полтьзователя
+        user_pact_id = message.text
+        # Проверка в базе пользователя
         user_data = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
-        if user_data :
+        if user_data:
             next_step_and_output_message(message,
-                                     "Вы есть",
-                                     keyboard_welcoming(),
-                                     user_first_choice)
+                                         "Вы есть",
+                                         keyboard_welcoming(),
+                                         user_first_choice)
         else:
             next_step_and_output_message(message,
-                                     "Такой номер не найден",
-                                     keyboard_back_to_welcome(),
-                                     enter_as_client)
+                                         "Такой номер не найден",
+                                         keyboard_back_to_welcome(),
+                                         enter_as_client)
 
     # Возврат назад
     elif message.text.lower() == 'назад':
@@ -144,12 +154,14 @@ def enter_as_client(message):
 def conclude_contract(message):
     # Валидация номера телефона
     if validate_phone_number(phone_pattern, message.text):
+        # Список с данными пользователя
         user_info = []
-        # Находим номер в строке
-        phone_number = re.search(phone_pattern, message.text)[0]
+        # Делим на отдельные переменные
         user_info = message.text.split(',')
         if len(user_info) == 5:
+            # Добавляем ID пользователя
             user_info.insert(0, message.from_user.id)
+            # Добавляем пользователя в DB
             data_base.register_user(user_info)
 
             next_step_and_output_message(message,
@@ -158,9 +170,9 @@ def conclude_contract(message):
                                          user_first_choice)
         else:
             next_step_and_output_message(message,
-                                     user_wrong,
-                                     keyboard_back_to_welcome(),
-                                     conclude_contract)
+                                         user_wrong,
+                                         keyboard_back_to_welcome(),
+                                         conclude_contract)
 
     # Возврат назад
     elif message.text.lower() == 'назад':
@@ -188,8 +200,10 @@ def welcome_message_output(message):
 
 
 @bot.message_handler(content_types=['voice'])   # Обработка голосовых
-def start_voice_message(message):
-    voice_message_download(message)
+def voice(voice):
+    print(voice.from_user.id)
+    if data_base.check_user_in_db_tg(voice.from_user.id):
+        voice_message_download(voice)
 
 
 # Обработка текстовых
