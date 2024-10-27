@@ -202,6 +202,12 @@ def welcome_message_output(message):
                      reply_markup=keyboard_welcoming())
 
 
+# Обработка голосовых
+@bot.message_handler(content_types=['voice'])
+def start_voice_message(message):
+    voice_message_download(message)
+
+
 # Обработка текстовых
 @bot.message_handler(content_types=['text'])
 # Начальное сообщение
