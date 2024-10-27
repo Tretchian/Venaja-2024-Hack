@@ -47,11 +47,11 @@ def GetFinalWant(wants_words, clearTokens):
     и список приведенных слов из сообщения"""
     # Намерения из сообщения
     wants = []
-
+    print(wants_words)
     for wants_word in wants_words:
         # Перебор кортежей, где [2] это ключевые слова
-        if wants_word[2] in clearTokens:
-            wants.append(wants_word[1])
+        if wants_word[1] in clearTokens:
+            wants.append(wants_word[0])
 
     # Возвращает намерения
     return wants
@@ -78,7 +78,26 @@ def sendLetter(theme, letter):
         list_receivers.append(str(i[0]))
     ms.send_email_tolist(list_receivers)
 
-def CreateLettter(Telegram_id, Telegram_message, wants):
+def CreateLettterNewUser(Telegram_message, wants, Surname, Middlename, Lastname, Phonenumber, Addr):
+
+    lettertext = f"Клиент {Surname}, {Lastname}, {Middlename}\n"
+    lettertext += f"с номером телефона - {Phonenumber}\n"
+    lettertext += f"Проживающего по адресу - {Addr}\n"
+    lettertext += f"Проживающего по адресу - {Addr}\n"
+    lettertext += f"Полное сообщение от клиента:\n {Telegram_message}"
+
+    reserved_wants = ['привет','пока']
+    # el ∊ wants and el !∊ reserved_wants 
+    res = list(set(wants).difference(reserved_wants))
+
+    if len(res) == 0:
+        return False
+        # theme = "Намерения непонятны"
+    theme = str(res[0])
+    sendLetter(theme, lettertext)
+    return True
+
+def CreateLettterClient(Telegram_id, Telegram_message, wants):
     """Принимает намерения из функции"""
     connection = sqlite3.connect(r"db/Main_DB.db")
     cursor = connection.cursor()
@@ -90,7 +109,7 @@ def CreateLettter(Telegram_id, Telegram_message, wants):
     connection.close()
     # Нужно будет запретить удалять "приветствие и пока" из базы данных
     # намерений, чтоб программа работала
-    reserved_wants = ['Привет','Пока']
+    reserved_wants = ['привет','пока']
     # el ∊ wants and el !∊ reserved_wants 
     res = list(set(wants).difference(reserved_wants))
 
