@@ -3,7 +3,6 @@ import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from multipledispatch import dispatch
-import funct
 
 class MailSender():
     # Настройки отправителя и получателя

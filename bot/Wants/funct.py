@@ -1,16 +1,18 @@
-import pymorphy2
+import pymorphy3
 import nltk
 from nltk.corpus import stopwords
 import string
 import sqlite3
 from mailSender import MailSender
 
+# nltk.download('punkt_tab')
+# nltk.download('stopwords')
 
 def MessagePreprocessing(message):
     """Принимает сообщение от пользователя напрямую,
         или преобразование из войса"""
     """И очищает и преобразовывает, до нормальной формы"""
-    morph = pymorphy2.MorphAnalyzer()
+    morph = pymorphy3.MorphAnalyzer()
     # Делит предложение на слова и символы
     tokens = nltk.word_tokenize(message)
 
@@ -30,7 +32,7 @@ def MessagePreprocessing(message):
 def GetWantsWords():
     """Достает слова из базы данных и определяет их намерение"""
     # Вставить ссылку на базу данных, здесь просто заглушка
-    connection = sqlite3.connect(r"db\Main_DB.db")
+    connection = sqlite3.connect(r"db/Main_DB.db")
     cursor = connection.cursor()
     # Через execute делаем все запросы
     cursor.execute('SELECT wants_name, Key_word from wants_names LEFT JOIN kwords_wants')
@@ -61,7 +63,7 @@ def GetFinalWant(wants_words, clearTokens):
 # connection.close()
 
 def sendLetter(theme, letter):
-    connection = sqlite3.connect(r"db\Main_DB.db")
+    connection = sqlite3.connect(r"db/Main_DB.db")
     cursor = connection.cursor()
     cursor.execute("SELECT Mail FROM Persons WHERE Role = 1")
     res = cursor.fetchall()
@@ -78,7 +80,7 @@ def sendLetter(theme, letter):
 
 def CreateLettter(Telegram_id, Telegram_message, wants):
     """Принимает намерения из функции"""
-    connection = sqlite3.connect(r"db\Main_DB.db")
+    connection = sqlite3.connect(r"db/Main_DB.db")
     cursor = connection.cursor()
 
     cursor.execute("SELECT Name, Surname, Middlename, ID_Pact, PhoneNumber, Address FROM Client WHERE TG_ID = ?", (str(Telegram_id),))
@@ -86,10 +88,9 @@ def CreateLettter(Telegram_id, Telegram_message, wants):
     # res_list ["Имя, Фамилия, Отчество, Номер Договора, Номер Телефона, Физ Адрес"]
     res_list = cursor.fetchone()
     connection.close()
-    reserved_wants = set(["Привет", "Пока"])
     # Нужно будет запретить удалять "приветствие и пока" из базы данных
     # намерений, чтоб программа работала
-
+    reserved_wants = ['Привет','Пока']
     # el ∊ wants and el !∊ reserved_wants 
     res = list(set(wants).difference(reserved_wants))
 
