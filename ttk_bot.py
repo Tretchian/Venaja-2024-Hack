@@ -32,20 +32,6 @@ def keyboard_back_to_welcome():
     return keyboard
 
 
-# Клавиатура в меню и назад к вводу договора
-def keyboard_back_to_menu_and_back_to_enter():
-    # Инициализация клавиатуры в один ряд
-    keyboard = types.InlineKeyboardMarkup(row_width=2)
-    # Кнопка «Назад»
-    key_back_to_menu = types.InlineKeyboardButton(text='Назад в меню',
-                                          callback_data='back_to_start')
-    
-    key_back = types.InlineKeyboardButton(text='Назад',
-                                          callback_data='back_to_choice')
-    # Добавялем кнопку
-    keyboard.add(key_back, key_back_to_menu)
-    return keyboard
-
 # Клавиатура приветственная
 def keyboard_welcoming():
     # Инициализация клавиатуры в один ряд
@@ -61,24 +47,6 @@ def keyboard_welcoming():
     return keyboard
 
 
-# Клавиатура выбора услиуги или тарифа
-def keyboard_plan_or_service():
-     # Инициализация клавиатуры в один ряд
-    keyboard = types.InlineKeyboardMarkup(row_width=2)
-    # Кнопка «Услуга»
-    key_service = types.InlineKeyboardButton(text='Услуга',
-                                             callback_data='service')
-    # Кнопка «Тариф»
-    key_plan = types.InlineKeyboardButton(text='Тариф',
-                                          callback_data='plan')
-    # Кнопка "Назад"
-    key_back = types.InlineKeyboardButton(text='Назад',
-                                          callback_data='back_to_start')
-    # Добавляем кнопки в клавиатуру
-    keyboard.add(key_service, key_plan, key_back)
-    return keyboard
-
-
 # Назад к входу по номеру договора
 def keyboard_back_to_enter():
     # Инициализация клавиатуры в один ряд
@@ -89,7 +57,7 @@ def keyboard_back_to_enter():
     # Добавялем кнопку
     keyboard.add(key_back)
     return keyboard
-    
+
 
 # Сохранение аудио
 def voice_message_download(message):
@@ -152,14 +120,15 @@ def validate_phone_number(regex, phone_number):
 def enter_as_client(message):
     # Если найден номер догвора по маске вход удачен
     if re.search(r'\b516\d{6}\b', message.text):
-        # Номер договора полтьзователя  
-        user_pactid = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
+        # Номер договора полтьзователя
+        is_user = data_base.check_user_in_db(re.search(r'\b516\d{6}\b', message.text)[0])
+        pact_id_user = re.search(r'\b516\d{6}\b', message.text)[0]
         # Имя пользователя
-        username = data_base.get_name_by_pact_id(user_pactid)
+        username = data_base.get_name_by_pact_id(pact_id_user)
         # Проверка в базе пользователя
-        if user_pactid:
+        if is_user:
             bot.send_message(message.from_user.id, f'добрый день, {username}')
-            user_datas(message.from_user.id, user_pactid)
+            user_datas(message.from_user.id, pact_id_user)
         else:
             next_step_and_output_message(message,
                                          "Ошибка, номер не найден",
@@ -215,14 +184,15 @@ def conclude_contract(message):
     else:
         next_step_and_output_message(message,
                                      user_wrong,
-                                     keyboard_plan_or_service(),
+                                     keyboard_back_to_welcome(),
                                      conclude_contract)
 
 
+# Вывод данных пользоватлея по тарифам и услугам
 def user_datas(user_id, pact_id):
     data = data_base.check_user_services_and_tariffs(pact_id)
-    print(data)
-    bot.send_message(user_id, data)
+    bot.send_message(user_id, data, keyboard_back_to_enter())
+
 
 # Обработка начала диалога
 @bot.message_handler(commands=['start'])
@@ -234,7 +204,8 @@ def welcome_message_output(message):
                      reply_markup=keyboard_welcoming())
 
 
-@bot.message_handler(content_types=['voice'])   # Обработка голосовых
+# Обработка голосовых
+@bot.message_handler(content_types=['voice'])
 def start_voice_message(message):
     voice_message_download(message)
 
@@ -286,5 +257,6 @@ def callbacker(call):
                                               user_contract_enter_text,
                                               keyboard_back_to_welcome(),
                                               enter_as_client)
+
 
 bot.polling(none_stop=True)
