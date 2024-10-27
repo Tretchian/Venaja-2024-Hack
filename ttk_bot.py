@@ -1,11 +1,12 @@
 import telebot
 import requests
 import re
+from Voise2text.VoiceToText import Voise_to_text, convert_ogg_to_wav
 from telebot import types
 
 
 # Токен бота
-bot_token = '7659124438:AAGJEiu7fVOET0Vy_hypEfdq0YZTJ25xwJI'
+bot_token = '7354302705:AAGNwYG8K9szJusZbV4PJgf98b12I97-zOk'
 
 
 # Объект тг-бот
@@ -51,8 +52,17 @@ def voice_message_download(message):
     file_info = bot.get_file(message.voice.file_id)
     file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(bot_token,
                                                                           file_info.file_path))
+    #with open(f'{message.from_user.id}.ogg', 'wb') as f:
+     #   f.write(file.content)
     with open(f'{message.from_user.id}.ogg', 'wb') as f:
+    #with open(f'/home/tretchian/projects/Venaja-2024-Hack/Voise2text/audiofile/{message.from_user.id}.ogg', 'wb') as f:
         f.write(file.content)
+        #Voise2text.conver
+        #convert_ogg_to_wav('124', '2142')
+        text = Voise_to_text(str(message.from_user.id))
+        print(text)
+        bot.send_message(message.chat.id, text)
+
 
 
 # Конструктор отправки сообщения и следущего шага
