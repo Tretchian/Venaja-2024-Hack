@@ -78,26 +78,7 @@ def sendLetter(theme, letter):
         list_receivers.append(str(i[0]))
     ms.send_email_tolist(list_receivers)
 
-def CreateLettterNewUser(Telegram_message, wants, Surname, Middlename, Lastname, Phonenumber, Addr):
-
-    lettertext = f"Клиент {Surname}, {Lastname}, {Middlename}\n"
-    lettertext += f"с номером телефона - {Phonenumber}\n"
-    lettertext += f"Проживающего по адресу - {Addr}\n"
-    lettertext += f"Проживающего по адресу - {Addr}\n"
-    lettertext += f"Полное сообщение от клиента:\n {Telegram_message}"
-
-    reserved_wants = ['привет','пока']
-    # el ∊ wants and el !∊ reserved_wants 
-    res = list(set(wants).difference(reserved_wants))
-
-    if len(res) == 0:
-        return False
-        # theme = "Намерения непонятны"
-    theme = str(res[0])
-    sendLetter(theme, lettertext)
-    return True
-
-def CreateLettterClient(Telegram_id, Telegram_message, wants):
+def CreateLettter(Telegram_id, Telegram_message, wants):
     """Принимает намерения из функции"""
     connection = sqlite3.connect(r"db/Main_DB.db")
     cursor = connection.cursor()
@@ -126,10 +107,6 @@ def CreateLettterClient(Telegram_id, Telegram_message, wants):
 
     sendLetter(theme, lettertext)
     return True
-    
-
-
-
     
 # mess = "Хочу купить телефон"
 # mess_tokens = MessagePreprocessing(mess)
